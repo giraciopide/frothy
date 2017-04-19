@@ -9,12 +9,25 @@
         font-family: 'Ubuntu Mono', monospace;
     }
 
+.left-pane {
+	color: #fff;
+	background-color: rgb(61, 79, 93);
+	position: fixed;
+	top: 0;
+	bottom: 0;
+}
+
+.right-pane {
+	position:fixed ;
+	right: 0;
+	bottom: 0;
+}
 
 textarea#message-input {
 	 /* width: 100%; */
 }
 
-div#footer {
+div.footer {
 	background-color: #ddd;
 }
 

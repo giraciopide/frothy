@@ -11,7 +11,7 @@
 
 <body>
 	<div class="pure-g">
-	    <div class="pure-u-1-5 people">
+	    <div class="left-pane pure-u-1-5 people">
 	    	Users
 	    	<ul>
 	    		<li>snaporaz</li>
@@ -19,33 +19,38 @@
 	    		<li>kebab-case</li>
 	    	</ul>
 	    </div>
-	    <div class="pure-u-4-5 conversation">
-	    	<ul id='conversation'>
-	    		<li class='converation-item'>
-	    			<span class='user'>snaporaz</span>: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-	    		</li>
-	    		<li class='converation-item'>
-	    			<span class='user'>snaporaz</span>: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-	    		</li>
-	    		<li class='converation-item'>
-	    			<span class='user'>snaporaz</span>: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-	    		</li>
-				<li class='converation-item'>
-	    			<span class='user'>snaporaz</span>: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-	    		</li>
-  			</ul><!-- conversation -->
-	    </div><!-- conversation div -->
+	    <div class="pure-u-4-5 right-pane">
+	    	<div class='pure-g'>
+	    		<div class='pure-u-1-1'>
+					<ul id='conversation'>
+			    		<li class='converation-item'>
+			    			<span class='user'>snaporaz</span>: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+			    		</li>
+			    		<li class='converation-item'>
+			    			<span class='user'>snaporaz</span>: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+			    		</li>
+			    		<li class='converation-item'>
+			    			<span class='user'>snaporaz</span>: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+			    		</li>
+						<li class='converation-item'>
+			    			<span class='user'>snaporaz</span>: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+			    		</li>
+		  			</ul><!-- conversation -->
+		  		</div><!-- col -->
+	    	</div><!-- row -->
+	    	<div class="pure-g footer">
+				<div class="pure-u-1-1">
+					<form class="pure-form">
+						<textarea id='message-input' class='pure-input-1-2'></textarea>
+						<button type='button' class="pure-button pure-button-primary">send</button>
+					</form>
+				</div>
+			</div>
+		</div>
 	</div>
 
-	<div class="pure-g footer">
-		<div class="pure-u-4-5">
-			<textarea id='message-input'></textarea>
-		</div>
-	    <div class="pure-u-1-5">
-	    	<button class="pure-button pure-button-primary">send</button>
-	    </div>
-	</div>
-   <script src="js/jquery-3.2.1-min.js"></script>
+
+   <script src="js/jquery-3.2.1.min.js"></script>
    <script src="js/undercover.js"></script>
 </body>
 </html>
