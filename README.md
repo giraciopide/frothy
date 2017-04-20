@@ -1,10 +1,14 @@
 # Frothy
 
-A clojure chat system over websocket.
+A silly sweet clojure chat system over websocket.
 
 ## Installation
 
-You need leiningen/jdk. Clone the repo.
+Clone the repo, you'll need leiningen to build.
+
+Build with
+	lein uberjar
+
 
 ## Usage
 
