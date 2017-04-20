@@ -12,12 +12,12 @@
   (hk/with-channel request channel
     (let [channel-uuid (make-uuid)]
       (println "channel [" channel "] has been given uuid [" channel-uuid "]")
-      (hk/on-close channel (fn [status] (println "channel closed: " status)))
+      (hk/on-close channel (fn [status] 
+        (println "channel " channel-uuid " closed: " status)))
       (hk/on-receive channel (fn [data] 
         (println "channel " channel-uuid "received data" (str data))
         (hk/send! channel data))))))
     
-
 ;;
 ;; Routes for the application
 ;; 
