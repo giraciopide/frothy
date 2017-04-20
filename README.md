@@ -1,36 +1,24 @@
-# undercover
+# Frothy
 
-FIXME: description
+A clojure chat system over websocket.
 
 ## Installation
 
-Download from http://example.com/FIXME.
+You need leiningen/jdk. Clone the repo.
 
 ## Usage
 
-FIXME: explanation
+build with
+	lein uberjar
 
+then launch with
     $ java -jar undercover-0.1.0-standalone.jar [args]
-
-## Options
-
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
 
 ### Bugs
 
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
+None of course. You can't have bugs if you don't have features.
 
 ## License
 
-Copyright © 2017 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Copyright © 2017 Marco Nicolini
+MIT License
