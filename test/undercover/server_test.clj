@@ -1,5 +1,6 @@
-(ns undercover.server
-  (:require 
+(ns undercover.server-test
+  (:require
+    [clojure.test :refer :all]
     [undercover.core :as core]
     [undercover.server :as server]
     [clojure.string :as str]))
@@ -10,14 +11,21 @@
           initial-state {}
           state (server/add-user-channel initial-state uuid "nick" "channel")]
       (is (= 1 (count (:chan-by-id state))))
+      (is (= uuid (first (keys (:chan-by-id state)))))
       (is (= 1 (count (:nick-by-id state))))
-      (is (= 1 (count (:id-by-nick state)))))))
+      (is (= uuid (first (keys (:nick-by-id state)))))
+      (is (= 1 (count (:id-by-nick state))))
+      (is (= "nick" (first (keys (:id-by-nick state))))))))
+
 
 (deftest test-remove-user-channel
   (testing "Testing that removing a user channel works"
     (let [uuid (core/make-uuid)
-          initial-state (server/add-user-channel {} uuid "nick" "channel")
-          state (server/remove-channel initial-state uuid)]
-      (is (empty? (:chan-by-id state)))
-      (is (empty? (:nick-by-id state)))
-      (is (empty? (:id-by-nick state))))))
+          state1 {:rooms {"room1" #{uuid}}}
+          state2 (server/add-user-channel state1 uuid "nick" "channel")
+          final-state (server/remove-channel state2 uuid)]
+      (is (empty? (get-in final-state [:rooms "room1"])))
+      (is (empty? (:chan-by-id final-state)))
+      (is (empty? (:nick-by-id final-state)))
+      (is (empty? (:id-by-nick final-state))))))
+
