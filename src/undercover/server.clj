@@ -5,9 +5,6 @@
     [clojure.string :as str]))
 
 
-;; (defn make-uuid [] (str (java.util.UUID/randomUUID)))
-
-
 ;; The gargantuan server state
 (defonce state (atom {
                       :rooms {}           ;; name -> set of ids
