@@ -29,3 +29,18 @@
       (is (empty? (:nick-by-id final-state)))
       (is (empty? (:id-by-nick final-state))))))
 
+(deftest test-add-user-to-room1
+  (testing "Testing that adding a user to a non-existent room works"
+    (let [uuid (core/make-uuid)
+          init-state {}
+          state (server/add-user-channel init-state uuid "nick" "channel")
+          final-state (server/add-user-to-room state uuid "room1")]
+      (is (contains? (get-in final-state [:rooms "room1"]) uuid)))))
+
+(deftest test-remove-user-from-room1
+  (testing "Testing that adding a user to a non-existent room works"
+    (let [uuid (core/make-uuid)
+          init-state {}
+          state (server/add-user-channel init-state uuid "nick" "channel")
+          final-state (server/remove-user-from-room state uuid "room1")]
+      (is (empty? (get-in final-state [:rooms "room1"]))))))

@@ -69,15 +69,17 @@
       state)
     state))
 
-
 (defn add-user-channel! 
   [uuid nick channel]
   (swap! state add-user-channel uuid nick channel))
 
-
 (defn add-user-to-room!
   [uuid room]
   (swap! state add-user-to-room uuid room))
+
+(defn remove-user-from-room! 
+  [uuid room]
+  (swap! state remove-user-from-room uuid room))
 
 (defn remove-channel!
   [uuid]
