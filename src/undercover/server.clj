@@ -154,7 +154,7 @@
       (send! chan (make-res-ko msg "Nick already registered")))))
 
 
-(defmethod handle-msg! :list-room-req
+(defmethod handle-msg! :list-rooms-req
   [uuid chan msg]
   (send! chan (assoc make-res-ok
                   :rooms (:rooms @state))))
@@ -162,5 +162,9 @@
 
 (defmethod handle-msg! :join-room-req
   [uuid chan msg]
-  (let [room (get-in msg [:payload :room])]
-    ))
+  (let [room (get-in msg [:payload :room])
+        state (add-user-to-room! uuid room)
+        req-ok? (contains? (get-in state [:rooms room]) uuid)]
+    (if req-ok? 
+      (send! chan (make-res-ok msg))
+      (send! chan (make-res-ko msg "Could not join room")))))
