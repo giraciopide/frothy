@@ -3,6 +3,7 @@
             [compojure.route]
             [compojure.handler]
             [compojure.core]
+            [undercover.server :as srv]
             [org.httpkit.server :as hk])
   (:gen-class))
 
@@ -13,10 +14,13 @@
     (let [channel-uuid (make-uuid)]
       (println "channel [" channel "] has been given uuid [" channel-uuid "]")
       (hk/on-close channel (fn [status] 
+        (srv/handle-chan-closed! channel-uuid channel status)
         (println "channel " channel-uuid " closed: " status)))
       (hk/on-receive channel (fn [data] 
         (println "channel " channel-uuid "received data" (str data))
-        (hk/send! channel data))))))
+        (srv/handle-msg! channel-uuid channel (srv/make-msg data)))))))
+        ;; (hk/send! channel data)
+
     
 ;;
 ;; Routes for the application
