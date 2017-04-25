@@ -161,6 +161,17 @@
 
 (defn make-user-join-feed [room nick] (make-user-room-feed room nick :joined-room))
 
+(defn make-room-chat-feed 
+  [room nick chat-msg]
+  {
+    :type :room-chat
+    :payload {
+      :who nick 
+      :msg chat-msg
+      :room room
+    }
+  })
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Message handlers
@@ -169,6 +180,7 @@
 
 ;; handle message dispatch on message type
 (defmulti handle-msg! (fn [msg] (keyword (:type msg))))
+
 
 (defmethod handle-msg! :login-req
   [uuid chan msg]
@@ -182,7 +194,7 @@
 
 (defmethod handle-msg! :list-rooms-req
   [uuid chan msg]
-  (send! chan (assoc make-res-ok
+  (send! chan (assoc (make-res-ok msg)
                   :rooms (:rooms @state))))
 
 
@@ -207,4 +219,19 @@
     (send! chan (make-res-ok msg))
     (if-let [nick (get-nick state uuid)]
       (broadcast! (get-room-chans state room) (make-user-join-feed room nick)))))
+
+
+(defmethod handle-msg! :say-req
+  [uuid chan msg]
+  (let [srv-state @state
+        nick (get-nick srv-state uuid)
+        chat-msg (get-in msg [:payload :msg])
+        room-name (get-in msg [:payload :room])
+        room (get-room state room-name)]
+    (if (or (nil? nick) (not (contains? room nick)))
+      (send! chan (make-res-ko msg "Not logged in yet or not part of the room"))
+      (do 
+        (send! chan (make-res-ok msg))
+        (broadcast! room (make-room-chat-feed room nick chat-msg))))))
+
 
