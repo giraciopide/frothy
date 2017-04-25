@@ -52,6 +52,18 @@
   [state room]
   (get-in state [:rooms room]))
 
+(defn uuid-to-chan
+  [state uuid]
+  (get (:chan-by-id state) uuid))
+
+(defn nick-to-uuid
+  [state nick]
+  (get (:id-by-nick state) nick))
+
+(defn nick-to-chan
+  [state nick]
+  (uuid-to-chan state (nick-to-uuid state nick)))
+
 (defn get-room-chans
   "Returns a seq of channels, one for each user in the room"
   [state room]
@@ -164,11 +176,21 @@
 (defn make-room-chat-feed 
   [room nick chat-msg]
   {
-    :type :room-chat
+    :type :room-chat-feed
     :payload {
       :who nick 
       :msg chat-msg
       :room room
+    }
+  })
+
+(defn make-whisper-feed
+  [from-nick whisper-text]
+  {
+    :type :whisper-feed
+    :payload {
+      :from from-nick
+      :whisper whisper-text
     }
   })
 
@@ -234,4 +256,17 @@
         (send! chan (make-res-ok msg))
         (broadcast! room (make-room-chat-feed room nick chat-msg))))))
 
+
+(defmethod handle-msg! :whisper-req
+  [uuid chan msg]
+  (let [srv-state @state
+        from-nick (get-nick srv-state uuid)
+        to-nick (get-in msg [:payload :to])
+        to-chan (nick-to-chan srv-state to-nick)
+        whisper-text (get-in msg [:payload :msg])]
+    (if (nil? from-nick)
+      (send! chan (make-res-ko msg "Not logged in"))
+      (do 
+        (send! chan (make-res-ok msg))
+        (send! to-chan (make-whisper-feed from-nick whisper-text))))))
 
