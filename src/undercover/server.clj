@@ -52,6 +52,13 @@
   [state room]
   (get-in state [:rooms room]))
 
+(defn get-room-chans
+  "Returns a seq of channels, one for each user in the room"
+  [state room]
+  (let [uuids (get-room state room)
+        chan-by-id (:chan-by-id state)]
+    (remove nil? (map #(get chan-by-id %1) uuids))))
+
 (defn add-user-to-room
   "Adds a user to a room"
   [state uuid room]
@@ -129,11 +136,30 @@
   [chan msg] 
   (hk/send! chan (json/write-str msg)))
 
+(defn broadcast!
+  [chans msg]
+  (map #(send! %1 msg) chans))
+
 (defn make-msg
   "From raw json message to clojure map representing the message"
   [raw-json]
   (json/read-str raw-json 
     :key-fn keyword))
+
+(defn make-user-room-feed
+  [room nick action]
+  { 
+    :type :people-feed
+    :payload { 
+      :who nick
+      :action action
+      :room room
+    }
+  })
+
+(defn make-user-leave-feed [room nick] (make-user-room-feed room nick :left-room))
+
+(defn make-user-join-feed [room nick] (make-user-room-feed room nick :joined-room))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -151,7 +177,7 @@
         req-ok? (= (get-in state [:nick-by-id nick]) uuid)]
     (if req-ok?
       (send! chan (make-res-ok msg))
-      (send! chan (make-res-ko msg "Nick already registered")))))
+      (send! chan (make-res-ko msg "Nickname already in use")))))
 
 
 (defmethod handle-msg! :list-rooms-req
@@ -164,7 +190,21 @@
   [uuid chan msg]
   (let [room (get-in msg [:payload :room])
         state (add-user-to-room! uuid room)
-        req-ok? (contains? (get-in state [:rooms room]) uuid)]
-    (if req-ok? 
-      (send! chan (make-res-ok msg))
+        req-ok? (contains? (get-in state [:rooms room]) uuid)
+        nick (get-nick state uuid)]
+    (if req-ok?
+      (do
+        (send! chan (make-res-ok msg))  ;; res
+        (broadcast! (get-room-chans state room) (make-user-join-feed room nick))) ;; notify people
+      ;; req not ok
       (send! chan (make-res-ko msg "Could not join room")))))
+
+
+(defmethod handle-msg! :leave-room-req
+  [uuid chan msg]
+  (let [room (get-in msg [:payload :room])
+        state (remove-user-from-room! uuid room)]
+    (send! chan (make-res-ok msg))
+    (if-let [nick (get-nick state uuid)]
+      (broadcast! (get-room-chans state room) (make-user-join-feed room nick)))))
+
