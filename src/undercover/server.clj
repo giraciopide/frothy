@@ -139,10 +139,6 @@
     :type (res-kw (:type req-msg))
     :payload (status-ko why) })
 
-(defn make-res-ok-payload
-  [req payload]
-  (make-res-ok req))
-
 (defn send! 
   "Sends clojure map as a json message to the destination channel"
   [chan msg] 
@@ -225,10 +221,13 @@
   (let [room (get-in msg [:payload :room])
         state (add-user-to-room! uuid room)
         req-ok? (contains? (get-in state [:rooms room]) uuid)
-        nick (get-nick state uuid)]
+        nick (get-nick state uuid)
+        room-people (get-room state room)]
     (if req-ok?
       (do
-        (send! chan (make-res-ok msg))  ;; res
+        (send! chan (assoc (make-res-ok msg) 
+                      :room room
+                      :people room-people))  ;; res
         (broadcast! (get-room-chans state room) (make-user-join-feed room nick))) ;; notify people
       ;; req not ok
       (send! chan (make-res-ko msg "Could not join room")))))

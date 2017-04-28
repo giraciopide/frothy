@@ -36,4 +36,4 @@
 (defn -main
   "Starts the undercover chatserver"
   [& args]
-  (hk/run-server (compojure.handler/site #'all-routes) {:port 8080}))
+  (hk/run-server (compojure.handler/site #'all-routes) {:port 8349}))
