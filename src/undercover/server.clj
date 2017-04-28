@@ -74,18 +74,18 @@
 
 (defn add-user-to-room
   "Adds a user to a room"
-  [state uuid room]
+  [state uuid room-name]
   (if-let [nick (get-nick state uuid)]
-    (if-let [room (get-room state room)]
-      (assoc-in state [:rooms room] (set/union room #{ uuid }))
-      (assoc-in state [:rooms room] #{ uuid }))
+    (if-let [room (get-room state room-name)]
+      (assoc-in state [:rooms room-name] (set/union room #{ uuid }))
+      (assoc-in state [:rooms room-name] #{ uuid }))
     state))
 
 (defn remove-user-from-room
-  [state uuid room]
+  [state uuid room-name]
   (if-let [nick (get-nick state uuid)]
-    (if-let [room (get-room state room)]
-      (assoc-in state [:rooms room] (set/difference room #{ uuid }))
+    (if-let [room (get-room state room-name)]
+      (assoc-in state [:rooms room-name] (set/difference room #{ uuid }))
       state)
     state))
 
@@ -255,8 +255,10 @@
         nick (get-nick srv-state uuid)
         chat-msg (get-in msg [:payload :msg])
         room-name (get-in msg [:payload :room])
-        room (get-room state room-name)]
-    (if (or (nil? nick) (not (contains? room nick)))
+        room (get-room srv-state room-name)]
+    (println "nick: " nick " room name: " room-name)
+    (pp/pprint room)
+    (if (or (nil? nick) (not (contains? room uuid)))
       (send! chan (make-res-ko msg "Not logged in yet or not part of the room"))
       (do 
         (send! chan (make-res-ok msg))
