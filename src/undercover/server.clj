@@ -197,14 +197,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; handle message dispatch on message type
-(defmulti handle-msg! (fn [msg] (keyword (:type msg))))
+(defmulti handle-msg! (fn [uuid chan msg] (keyword (:type msg))))
 
 
 (defmethod handle-msg! :login-req
   [uuid chan msg]
   (let [nick (get-in msg [:payload :nick])
         state (add-user-channel! uuid nick chan)
-        req-ok? (= (get-in state [:nick-by-id nick]) uuid)]
+        req-ok? (= (nick-to-uuid state nick) uuid)]
     (if req-ok?
       (send! chan (make-res-ok msg))
       (send! chan (make-res-ko msg "Nickname already in use")))))
@@ -222,7 +222,7 @@
         state (add-user-to-room! uuid room)
         req-ok? (contains? (get-in state [:rooms room]) uuid)
         nick (get-nick state uuid)
-        room-people (get-room state room)]
+        room-people (map (partial get-nick state) (get-room state room))]
     (if req-ok?
       (do
         (send! chan (assoc (make-res-ok msg) 

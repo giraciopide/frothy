@@ -26,7 +26,7 @@
 ;; Routes for the application
 ;; 
 (compojure.core/defroutes all-routes
-  (compojure.core/GET "/ws" [] chat-handler)      ;; websocket
+  (compojure.core/GET "/chat" [] chat-handler)      ;; websocket
   (compojure.route/resources "/") ;; static file url prefix /, in `public` folder
   (compojure.route/not-found "<p>Whoopsie! The page you are looking for is not here.</p>"))
 
