@@ -152,7 +152,8 @@
 
 (defn broadcast!
   [chans msg]
-  (map #(send! %1 msg) chans))
+  (doseq [chan chans]
+    (send! chan msg)))
 
 (defn make-msg
   "From raw json message to clojure map representing the message"
@@ -211,7 +212,6 @@
   (let [nick (get-in msg [:payload :nick])
         state (add-user-channel! uuid nick chan)
         req-ok? (= (nick-to-uuid state nick) uuid)]
-    (pp/pprint state)
     (if req-ok?
       (send! chan (make-res-ok msg))
       (send! chan (make-res-ko msg "nickname already in use or already logged in")))))
@@ -230,7 +230,6 @@
         req-ok? (contains? (get-in state [:rooms room]) uuid)
         nick (get-nick state uuid)
         room-people (map (partial get-nick state) (get-room state room))]
-    (pp/pprint state)
     (if req-ok?
       (do
         (send! chan (make-res-ok msg {:room room :people room-people}))
@@ -241,12 +240,11 @@
 
 (defmethod handle-msg! :leave-room-req
   [uuid chan msg]
-  (let [room (get-in msg [:payload :room])
-        state (remove-user-from-room! uuid room)]
-    (pp/pprint state)
+  (let [room-name (get-in msg [:payload :room])
+        state (remove-user-from-room! uuid room-name)]
     (send! chan (make-res-ok msg))
     (if-let [nick (get-nick state uuid)]
-      (broadcast! (get-room-chans state room) (make-user-join-feed room nick)))))
+      (broadcast! (get-room-chans state room-name) (make-user-leave-feed room-name nick)))))
 
 
 (defmethod handle-msg! :say-req
@@ -256,13 +254,11 @@
         chat-msg (get-in msg [:payload :msg])
         room-name (get-in msg [:payload :room])
         room (get-room srv-state room-name)]
-    (println "nick: " nick " room name: " room-name)
-    (pp/pprint room)
     (if (or (nil? nick) (not (contains? room uuid)))
-      (send! chan (make-res-ko msg "Not logged in yet or not part of the room"))
+      (send! chan (make-res-ko msg (str "cant talk in room " room-name)))
       (do 
         (send! chan (make-res-ok msg))
-        (broadcast! room (make-room-chat-feed room nick chat-msg))))))
+        (broadcast! (get-room-chans srv-state room-name) (make-room-chat-feed room-name nick chat-msg))))))
 
 
 (defmethod handle-msg! :whisper-req
@@ -273,7 +269,7 @@
         to-chan (nick-to-chan srv-state to-nick)
         whisper-text (get-in msg [:payload :msg])]
     (if (nil? from-nick)
-      (send! chan (make-res-ko msg "Not logged in"))
+      (send! chan (make-res-ko msg "not logged in: cant whisper"))
       (do 
         (send! chan (make-res-ok msg))
         (send! to-chan (make-whisper-feed from-nick whisper-text))))))
