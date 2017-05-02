@@ -220,9 +220,12 @@
 
 (defmethod handle-msg! :list-rooms-req
   [uuid chan msg]
-  (send! chan (assoc (make-res-ok msg)
-                  :rooms (:rooms @state))))
-
+  (send! chan (make-res-ok 
+                msg 
+                (if-let [rooms (keys (:rooms @state))]
+                  { :rooms rooms }
+                  { :rooms [] } ))))
+                
 
 (defmethod handle-msg! :join-room-req
   [uuid chan msg]
@@ -274,4 +277,5 @@
       (do 
         (send! chan (make-res-ok msg))
         (send! to-chan (make-whisper-feed from-nick whisper-text))))))
+
 
