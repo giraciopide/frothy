@@ -30,8 +30,8 @@
 
 ;;
 ;; Main
-;; 
+;; TODO make port and ip binding configurable
 (defn -main
   "Starts the undercover chatserver"
   [& args]
-  (hk/run-server (compojure.handler/site #'all-routes) {:port 8349}))
+  (hk/run-server (compojure.handler/site #'all-routes) {:port 8349 :ip "0.0.0.0"}))

@@ -151,12 +151,13 @@
   (hk/send! chan (json/write-str msg)))
 
 (defn broadcast!
+  "Sends a payload to all given channels"
   [chans msg]
   (doseq [chan chans]
     (send! chan msg)))
 
 (defn make-msg
-  "From raw json message to clojure map representing the message"
+  "From raw json message to a clojure map representing the message"
   [raw-json]
   (json/read-str raw-json 
     :key-fn keyword))
@@ -214,7 +215,7 @@
         req-ok? (= (nick-to-uuid state nick) uuid)]
     (if req-ok?
       (send! chan (make-res-ok msg))
-      (send! chan (make-res-ko msg "nickname already in use or already logged in")))))
+      (send! chan (make-res-ko msg "nick already in use or already logged in")))))
 
 
 (defmethod handle-msg! :list-rooms-req
@@ -254,8 +255,8 @@
         chat-msg (get-in msg [:payload :msg])
         room-name (get-in msg [:payload :room])
         room (get-room srv-state room-name)]
-    (if (or (nil? nick) (not (contains? room uuid)))
-      (send! chan (make-res-ko msg (str "cant talk in room " room-name)))
+    (if (or (nil? nick) (nil? room) (not (contains? room uuid)))
+      (send! chan (make-res-ko msg (str "room " room-name " doesnt exist or you're not part of it")))
       (do 
         (send! chan (make-res-ok msg))
         (broadcast! (get-room-chans srv-state room-name) (make-room-chat-feed room-name nick chat-msg))))))
@@ -268,8 +269,8 @@
         to-nick (get-in msg [:payload :to])
         to-chan (nick-to-chan srv-state to-nick)
         whisper-text (get-in msg [:payload :msg])]
-    (if (nil? from-nick)
-      (send! chan (make-res-ko msg "not logged in: cant whisper"))
+    (if (or (nil? from-nick) (nil? to-chan))
+      (send! chan (make-res-ko msg (str "can't whisper to " to-nick)))
       (do 
         (send! chan (make-res-ok msg))
         (send! to-chan (make-whisper-feed from-nick whisper-text))))))
