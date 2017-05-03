@@ -17,9 +17,8 @@
         (srv/handle-chan-closed! channel-uuid channel status)
         (println "channel " channel-uuid " closed: " status)))
       (hk/on-receive channel (fn [data] 
-        (srv/handle-msg! channel-uuid channel (srv/make-msg data)))))))
+        (srv/handle-msg! channel-uuid channel (srv/parse-msg data)))))))
 
-    
 ;;
 ;; Routes for the application
 ;; 

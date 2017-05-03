@@ -53,6 +53,12 @@
   [state room]
   (get-in state [:rooms room]))
 
+(defn get-room-names
+  [state name-filter]
+  (if (empty? name-filter)
+    (keys (:rooms state))
+    (filter #(.contains %1 name-filter) (keys (:rooms state)))))
+
 (defn uuid-to-chan
   [state uuid]
   (get (:chan-by-id state) uuid))
@@ -156,7 +162,7 @@
   (doseq [chan chans]
     (send! chan msg)))
 
-(defn make-msg
+(defn parse-msg
   "From raw json message to a clojure map representing the message"
   [raw-json]
   (json/read-str raw-json 
@@ -208,6 +214,11 @@
 (defmulti handle-msg! (fn [uuid chan msg] (keyword (:type msg))))
 
 
+(defmethod handle-msg! :ping-req
+  [uuid chan msg]
+  (send! chan (make-res-ok msg)))
+
+
 (defmethod handle-msg! :login-req
   [uuid chan msg]
   (let [nick (get-in msg [:payload :nick])
@@ -217,12 +228,12 @@
       (send! chan (make-res-ok msg))
       (send! chan (make-res-ko msg "nick already in use or already logged in")))))
 
-
+;; TODO filter
 (defmethod handle-msg! :list-rooms-req
   [uuid chan msg]
   (send! chan (make-res-ok 
-                msg 
-                (if-let [rooms (keys (:rooms @state))]
+                msg
+                (if-let [rooms (get-room-names @state (get-in msg [:payload :filter]))]
                   { :rooms rooms }
                   { :rooms [] } ))))
                 
