@@ -1,4 +1,4 @@
-(defproject undercover "0.1.0"
+(defproject undercover "0.2.0-SNAPSHOT"
   :description "A silly chat server over websockets"
   :url "http://github.com/marco-nicolini/frothy"
   :license {:name "MIT License"

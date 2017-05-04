@@ -57,7 +57,7 @@
   [state name-filter]
   (if (empty? name-filter)
     (keys (:rooms state))
-    (filter #(.contains %1 name-filter) (keys (:rooms state)))))
+    (filter #(str/includes? %1 name-filter) (keys (:rooms state)))))
 
 (defn uuid-to-chan
   [state uuid]
