@@ -169,12 +169,12 @@
     :key-fn keyword))
 
 (defn make-user-room-feed
-  [room nick action]
+  [room nick event]
   { 
     :type :people-feed
     :payload { 
       :who nick
-      :action action
+      :userEvent event
       :room room
     }
   })
