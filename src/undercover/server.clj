@@ -151,22 +151,27 @@
     :type (res-kw (:type req-msg))
     :payload (status-ko why) })
 
+(defn decode-msg
+  "From raw json string to a clojure map representing the message"
+  [raw-json]
+  (json/read-str raw-json 
+    :key-fn keyword))
+
+(defn encode-msg
+  "From a clojure map representing the message to raw json string"
+  [msg]
+  (json/write-str msg))
+
 (defn send! 
   "Sends clojure map as a json message to the destination channel"
   [chan msg] 
-  (hk/send! chan (json/write-str msg)))
+  (hk/send! chan (encode-msg msg)))
 
 (defn broadcast!
   "Sends a payload to all given channels"
   [chans msg]
   (doseq [chan chans]
     (send! chan msg)))
-
-(defn parse-msg
-  "From raw json message to a clojure map representing the message"
-  [raw-json]
-  (json/read-str raw-json 
-    :key-fn keyword))
 
 (defn make-user-room-feed
   [room nick event]

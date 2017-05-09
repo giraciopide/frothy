@@ -17,7 +17,7 @@
         (srv/handle-chan-closed! channel-uuid channel status)
         (println "channel " channel-uuid " closed: " status)))
       (hk/on-receive channel (fn [data] 
-        (srv/handle-msg! channel-uuid channel (srv/parse-msg data)))))))
+        (srv/handle-msg! channel-uuid channel (srv/decode-msg data)))))))
 
 ;;
 ;; Routes for the application
@@ -27,10 +27,16 @@
   (compojure.route/resources "/") ;; static file url prefix /, in `public` folder
   (compojure.route/not-found "<p>Whoopsie! The page you are looking for is not here.</p>"))
 
+
+(defn start-server
+  "Starts the server with the given option map, returns a function that can be used to stop it"
+  [options]
+  (hk/run-server (compojure.handler/site #'all-routes) options))
+
 ;;
 ;; Main
 ;; TODO make port and ip binding configurable
 (defn -main
   "Starts the undercover chatserver"
   [& args]
-  (hk/run-server (compojure.handler/site #'all-routes) {:port 8349 :ip "0.0.0.0"}))
+  (start-server {:port 8349 :ip "0.0.0.0"}))
