@@ -118,6 +118,11 @@
                    :payload { :nick nick }})
   (is-res-ok (recv-msg q) "login-res"))
 
+
+(defn sleep-briefly
+  ([] (java.lang.Thread/sleep 200))
+  ([millis] (java.lang.Thread/sleep millis)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Real tests regarding setting up a server and connecting to it with a websocket client.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -130,17 +135,17 @@
   (testing "Testing the upon a malformed message the server will disconnect the client"
     (let [[sock q close-promise stop-server] (make-client-and-server test-host test-port)]
       (send-msg sock { :whatever "whatever "}) ;; this is a malformed message, we don't even have an :id field.
-      (java.lang.Thread/sleep 1000)
+      (sleep-briefly)
       (is (= true (realized? close-promise)))
       (ws/close sock)
       (stop-server))))
 
-(deftest test-malformed-message-gets-responded
+(deftest test-malformed-message-with-id-gets-responded
   (testing "Testing the upon a malformed message the server will disconnect the client"
     (let [[sock q close-promise stop-server] (make-client-and-server test-host test-port)]
       (send-msg sock { :id "id" :whatever "whatever "}) ;; this is a malformed message, we don't even have an :id field.
       (is-res-ko (recv-msg q))
-      (java.lang.Thread/sleep 1000)
+      (sleep-briefly)
       (is (= false (realized? close-promise)))
       (ws/close sock)
       (stop-server))))
