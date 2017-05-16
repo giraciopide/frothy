@@ -3,8 +3,9 @@
   :url "http://github.com/marco-nicolini/frothy"
   :license {:name "MIT License"
             :url "http://open-source-licenses.org/MIT"}
-  :dependencies [[org.clojure/clojure "1.8.0"]
-                 ;; [org.clojure/clojure "1.9.0-alpha16"]
+  :dependencies [;;[org.clojure/clojure "1.8.0"]
+                 [org.clojure/clojure "1.9.0-alpha16"]
+                 [dire "0.5.4"]
                  [http-kit "2.3.0-alpha2"]
                  [compojure "1.5.2"]
                  [org.clojure/data.json "0.2.6"]

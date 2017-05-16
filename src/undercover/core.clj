@@ -17,7 +17,7 @@
         (srv/handle-chan-closed! channel-uuid channel status)
         (println "channel " channel-uuid " closed: " status)))
       (hk/on-receive channel (fn [data] 
-        (srv/handle-msg! channel-uuid channel (srv/decode-msg data)))))))
+        (srv/handle-channel-recv! channel-uuid channel data))))))
 
 ;;
 ;; Routes for the application
@@ -39,4 +39,6 @@
 (defn -main
   "Starts the undercover chatserver"
   [& args]
-  (start-server {:port 8349 :ip "0.0.0.0"}))
+  (start-server {
+      :port 8349 
+      :ip "0.0.0.0" }))

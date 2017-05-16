@@ -5,17 +5,17 @@
     [clojure.data.json :as json]
     [org.httpkit.server :as hk]
     [clojure.pprint :as pp]
+    [dire.core :as dire]
     [clojure.string :as str]))
 
 
-;; The gargantuan server state
+;; The server state
 (defonce state (atom {
                       :rooms {}           ;; name -> set of ids
                       :chan-by-id {}      ;; id -> channel
                       :nick-by-id {}      ;; name -> id
                       :id-by-nick {}      ;; id -> name 
                     }))
-
 
 (defn add-user-channel
   "Returns a new server state where the given uuid, nick and channels have been added. 
@@ -215,8 +215,12 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
 ;; handle message dispatch on message type
-(defmulti handle-msg! (fn [uuid chan msg] (keyword (:type msg))))
+(defmulti handle-msg! 
+  (fn [uuid chan msg] 
+    ;; {:pre [(some? uuid)]} ;; TODO introduce spec here.
+    (keyword (:type msg))))
 
 
 (defmethod handle-msg! :ping-req
@@ -294,4 +298,26 @@
         (send! chan (make-res-ok msg))
         (send! to-chan (make-whisper-feed from-nick whisper-text))))))
 
+(defn handle-channel-recv!
+  "Receives text data, parses to a msg map and invokes the msg handler"
+  [chan-uuid chan text-data]
+  (handle-msg! chan-uuid chan (decode-msg text-data)))
 
+
+;;
+;; Fallback error handling for all message handlers.
+;; 
+(dire/with-handler! #'handle-channel-recv!
+  "If there's an error when handling the message, try to respond or close the connection
+   if we could not find a way to respond (we try our best if there's at least an :id field)"
+  java.lang.Exception ;; all exceptions... warrant a response with an id, if any.
+  ;;; 'e' is the exception object, 'args' are the original arguments to the task.
+  (fn [e & [chan-uuid chan text-data]] 
+    (try 
+      (let [req (decode-msg text-data)
+            id (:id req)]
+        (if (some? id)
+          (send! chan { :id (:id req) :payload { :status "ko" :why (.getMessage e)}}) ;; has an id, we can respond, we don't close.
+          (hk/close chan))) ;; doesn't have an id, we close straight away.
+      (catch java.lang.Exception e
+        (hk/close chan))))) ;; we failed in concocting or sending a failed, just close and move on.

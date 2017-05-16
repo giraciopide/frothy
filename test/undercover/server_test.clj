@@ -48,33 +48,124 @@
       (is (empty? (get-in final-state [:rooms "room1"]))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Real tests regarding setting up a server and connecting to it with a websocket client.
+;; Helpers to perform real test with a real websocket client
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defonce msg-id (atom 1))
+
+(defn next-msg-id! [] (str (swap! msg-id inc)))
 
 (defn recv-msg
   "Receive and decodes a message from a manifold stream"
   [q]
   (server/decode-msg @(m/take! q)))
 
+(defn send-raw-msg
+  [socket raw-str])
+
 (defn send-msg
   "Encodes a message to a string and sends it to a ws/client"
   [socket msg]
   (ws/send-msg socket (server/encode-msg msg)))
 
-(defn assert-res-ok
-  [response-msg]
-  (is (= "ok" (get-in response-msg [:payload :status]))))
+(defn is-res-status
+  [resp-msg status]
+  (is (= status (get-in resp-msg [:payload :status]))))
 
-(deftest test-chat-session-1
-  (testing "Testing that login in works works"
-    (let [shutdown-server (core/start-server { :port 9876 :ip "127.0.0.1" })
-          q (m/stream)
-          sock (ws/connect "ws://127.0.0.1:9876/chat"
-                  :on-receive #(m/put! q %1))] ;; on receive put onto the stream.
-      (send-msg sock { :id "1" 
-                             :type :login-req
-                             :payload { :nick "JSBach" }})
-      (assert-res-ok (recv-msg q))
+(defn is-msg-of-type
+  [msg msg-type]
+  (is (= msg-type (:type msg))))
+
+(defn is-res-ok
+  ([resp-msg]
+    (is-res-status resp-msg "ok"))
+  ([resp-msg res-type]
+    (is-msg-of-type resp-msg res-type) 
+    (is-res-status resp-msg "ok")))
+
+(defn is-res-ko
+  [resp-msg]
+  (is-res-status resp-msg "ko"))
+
+(defn is-msg-type
+  [message msg-type]
+  (is (= msg-type (:type message))))
+
+(defn make-server
+  "Starts a server and returns a function that is used to shut it down"
+  [host port]
+  (core/start-server { :port port :ip host }))
+
+(defn make-client
+  [host port]
+  (let [manifold-queue (m/stream)
+        close-promise (promise)
+        sock (ws/connect (str "ws://" host ":" (str port) "/chat")
+                :on-receive #(m/put! manifold-queue %1)
+                :on-close #(deliver close-promise (str %1 "/" %2)))]
+    [sock manifold-queue close-promise]))
+
+(defn make-client-and-server
+  [host port]
+  (let [stop-server (make-server host port)
+        [sock q close-promise] (make-client host port)]
+    [sock q close-promise stop-server]))
+
+(defn is-login-ok
+  [sock q nick]
+  (send-msg sock { :id (next-msg-id!) 
+                   :type :login-req 
+                   :payload { :nick nick }})
+  (is-res-ok (recv-msg q) "login-res"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Real tests regarding setting up a server and connecting to it with a websocket client.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def test-host "127.0.0.1")
+
+(def test-port 9876)
+
+(deftest test-malformed-message-causes-disconnect
+  (testing "Testing the upon a malformed message the server will disconnect the client"
+    (let [[sock q close-promise stop-server] (make-client-and-server test-host test-port)]
+      (send-msg sock { :whatever "whatever "}) ;; this is a malformed message, we don't even have an :id field.
+      (java.lang.Thread/sleep 1000)
+      (is (= true (realized? close-promise)))
       (ws/close sock)
-      (shutdown-server))))
+      (stop-server))))
+
+(deftest test-malformed-message-gets-responded
+  (testing "Testing the upon a malformed message the server will disconnect the client"
+    (let [[sock q close-promise stop-server] (make-client-and-server test-host test-port)]
+      (send-msg sock { :id "id" :whatever "whatever "}) ;; this is a malformed message, we don't even have an :id field.
+      (is-res-ko (recv-msg q))
+      (java.lang.Thread/sleep 1000)
+      (is (= false (realized? close-promise)))
+      (ws/close sock)
+      (stop-server))))
+
+(deftest test-login-session-1
+  (testing "Testing that login in works works"
+    (let [[sock q close-promise stop-server] (make-client-and-server test-host test-port)]
+      (send-msg sock { :id (next-msg-id!)
+                       :type :login-req
+                       :payload { :nick "JSBach" }})
+      (is-res-ok (recv-msg q))
+      (ws/close sock)
+      (stop-server))))
+
+;; TODO complete this test
+(deftest test-join-and-leave-room
+  (testing "Testing that login in works works"
+    (let [stop-server (make-server test-host test-port)
+          [sock1 q1 close-promise] (make-client test-host test-port) 
+          [sock2 q2 close-promise] (make-client test-host test-port)]
+      (is-login-ok sock1 q1 "JSBach")
+      (is-login-ok sock2 q2 "AVivaldi")
+      (ws/close sock1)
+      (ws/close sock2)
+      (stop-server))))
+
+
 
