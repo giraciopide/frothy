@@ -8,61 +8,63 @@
 ;; Requests
 ;;
 
+(s/def ::nick string?)
+
 (s/def ::login-req-payload
-  (s/keys :req [::nick]))
+  (s/keys :req-un [::nick]))
 
 (s/def ::filter string?)
 
 (s/def ::list-rooms-req-payload
-  (s/keys :req []
-          :opt [::filter]))
+  (s/keys :req-un []
+          :opt-un [::filter]))
 
 (s/def ::room string?)
 
 (s/def ::join-room-req-payload
-  (s/keys :req [::room]))
+  (s/keys :req-un [::room]))
 
 (s/def ::leave-room-req-payload
-  (s/keys :req [::room]))
+  (s/keys :req-un [::room]))
 
 (s/def ::msg string?)
 
 (s/def ::say-req-payload
-  (s/keys :req [::room ::msg]))
+  (s/keys :req-un [::room ::msg]))
 
 (s/def ::to string?)
 
 (s/def ::whisper-req-payload
-  (s/keys :req [::to ::msg]))
+  (s/keys :req-un [::to ::msg]))
 
 ;;
 ;; Responses
 ;;
 
-(s/def ::response-status #{:ok :ko})
+(s/def ::response-status #{"ok" "ko"})
 
 (s/def ::status ::response-status)
 (s/def ::why string?)
 
 (s/def ::response-payload
   (s/keys
-    :req [ ::status ]
-    :opt [ ::why ]))
+    :req-un [ ::status ]
+    :opt-un [ ::why ]))
 
 
 (s/def ::rooms 
   (s/coll-of string?))
 
 (s/def ::list-rooms-res-payload
-  (s/keys :req [::status]
-          :opt [::why ::rooms]))
+  (s/keys :req-un [::status]
+          :opt-un [::why ::rooms]))
 
 (s/def ::people
   (s/coll-of string?))
 
 (s/def ::join-room-res-payload
-  (s/keys :req [::status]
-          :opt [::why ::room ::people]))
+  (s/keys :req-un [::status]
+          :opt-un [::why ::room ::people]))
 
 ;;
 ;; Feeds
@@ -72,19 +74,19 @@
 (s/def ::whisper string?)
 
 (s/def ::whisper-feed-payload
-  (s/keys :req [::from ::whisper]))
+  (s/keys :req-un [::from ::whisper]))
 
 (s/def ::who? string?)
 
 (s/def ::room-chat-feed-payload
-  (s/keys :req [::who ::room ::msg]))
+  (s/keys :req-un [::who ::room ::msg]))
 
 (s/def ::userEvent
-  #{ :left-room :joined-room })
+  #{ left-room :joined-room })
 
 (s/def ::people-feed-payload
-  (s/keys :req [::who ::userEvent]
-          :opt [::room]))
+  (s/keys :req-un [::who ::userEvent]
+          :opt-un [::room]))
 
 ;;
 ;; Message structure
@@ -112,6 +114,6 @@
 (s/def ::id string?)
 
 (s/def ::message 
-  (s/keys :req [::type 
-                ::payload ]
-          :opt [::id]))
+  (s/keys :req-un [::type 
+                   ::payload ]
+          :opt-un [::id]))
