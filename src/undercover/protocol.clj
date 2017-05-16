@@ -82,7 +82,7 @@
   (s/keys :req-un [::who ::room ::msg]))
 
 (s/def ::userEvent
-  #{ left-room :joined-room })
+  #{ "left-room" "joined-room" })
 
 (s/def ::people-feed-payload
   (s/keys :req-un [::who ::userEvent]
@@ -117,3 +117,8 @@
   (s/keys :req-un [::type 
                    ::payload ]
           :opt-un [::id]))
+
+(defn valid-msg? 
+  "Validates a message against the protocol spec"
+  [msg] 
+  (s/valid? ::message msg))

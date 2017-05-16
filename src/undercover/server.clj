@@ -1,6 +1,7 @@
 (ns undercover.server
   (:require 
     [undercover.util :as util]
+    [undercover.protocol :as protocol]
     [clojure.set :as set]
     [clojure.data.json :as json]
     [org.httpkit.server :as hk]
@@ -219,7 +220,7 @@
 ;; handle message dispatch on message type
 (defmulti handle-msg! 
   (fn [uuid chan msg] 
-    ;; {:pre [(some? uuid)]} ;; TODO introduce spec here.
+    ;;{:pre [(protocol/valid-msg? msg)]} ;; SPEC
     (keyword (:type msg))))
 
 
@@ -310,8 +311,8 @@
 (dire/with-handler! #'handle-channel-recv!
   "If there's an error when handling the message, try to respond or close the connection
    if we could not find a way to respond (we try our best if there's at least an :id field)"
-  java.lang.Exception ;; all exceptions... warrant a response with an id, if any.
-  ;;; 'e' is the exception object, 'args' are the original arguments to the task.
+  [java.lang.Exception       ;; all exceptions.
+   java.lang.AssertionError] ;; thrown when a message is failing to comply the spec.
   (fn [e & [chan-uuid chan text-data]] 
     (try 
       (let [req (decode-msg text-data)
