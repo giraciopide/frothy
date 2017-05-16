@@ -58,7 +58,9 @@
 (defn recv-msg
   "Receive and decodes a message from a manifold stream"
   [q]
-  (server/decode-msg @(m/take! q)))
+  (let [m @(m/take! q)]
+    (println (str "recv: " m))
+    (server/decode-msg m)))
 
 (defn send-raw-msg
   [socket raw-str])

@@ -221,7 +221,7 @@
 ;; handle message dispatch on message type
 (defmulti handle-msg! 
   (fn [uuid chan msg] 
-    ;;{:pre [(protocol/valid-msg? msg)]} ;; TODO enable SPEC here for incoming messages
+    {:pre [(protocol/valid-msg? msg)]} ;; SPEC for incoming messages
     (keyword (:type msg))))
 
 

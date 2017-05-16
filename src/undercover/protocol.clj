@@ -37,6 +37,7 @@
 (s/def ::whisper-req-payload
   (s/keys :req-un [::to ::msg]))
 
+
 ;;
 ;; Responses
 ;;
@@ -101,7 +102,7 @@
     :response-payload           ::response-payload
     :login-req-payload          ::login-req-payload       
     :list-rooms-req-payload     ::list-rooms-req-payload
-    :join-room-request-payload  ::join-room-request-payload
+    :join-room-request-payload  ::join-room-req-payload
     :leave-room-req-payload     ::leave-room-req-payload
     :say-req-payload            ::say-req-payload
     :whisper-req-payload        ::whisper-req-payload
