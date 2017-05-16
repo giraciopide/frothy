@@ -163,8 +163,9 @@
   [msg]
   (json/write-str msg))
 
-(defn send! 
+(defn send!
   "Sends clojure map as a json message to the destination channel"
+  ;; TODO insert SPEC here for outgoing messages
   [chan msg] 
   (hk/send! chan (encode-msg msg)))
 
@@ -220,7 +221,7 @@
 ;; handle message dispatch on message type
 (defmulti handle-msg! 
   (fn [uuid chan msg] 
-    ;;{:pre [(protocol/valid-msg? msg)]} ;; SPEC
+    ;;{:pre [(protocol/valid-msg? msg)]} ;; TODO enable SPEC here for incoming messages
     (keyword (:type msg))))
 
 
@@ -238,7 +239,7 @@
       (send! chan (make-res-ok msg))
       (send! chan (make-res-ko msg "nick already in use or already logged in")))))
 
-;; TODO filter
+
 (defmethod handle-msg! :list-rooms-req
   [uuid chan msg]
   (send! chan (make-res-ok 
