@@ -165,8 +165,8 @@
 
 (defn send!
   "Sends clojure map as a json message to the destination channel"
-  ;; TODO insert SPEC here for outgoing messages
   [chan msg] 
+  {:pre [(protocol/valid-msg? msg)]} ;; SPEC for outgoing messages
   (hk/send! chan (encode-msg msg)))
 
 (defn broadcast!
@@ -319,7 +319,7 @@
       (let [req (decode-msg text-data)
             id (:id req)]
         (if (some? id)
-          (send! chan { :id (:id req) :payload { :status "ko" :why (.getMessage e)}}) ;; has an id, we can respond, we don't close.
+          (send! chan { :id (:id req) :type :generic-res :payload { :status "ko" :why (.getMessage e)}}) ;; has an id, we can respond, we don't close.
           (hk/close chan))) ;; doesn't have an id, we close straight away.
       (catch java.lang.Exception e
         (hk/close chan))))) ;; we failed in concocting or sending a failed, just close and move on.

@@ -92,10 +92,15 @@
 ;;
 ;; Message structure
 ;;
-
+;;
+;; incoming messages have type as a string (because we don't keywordize the type values)
+;; outgoing messages have type as a keyword
+;; 
 (s/def ::type #{"ping-req" "login-req" "list-rooms-req" "join-room-req" "leave-room-req" "say-req" "whisper-req"
-                "ping-res" "login-res" "list-rooms-res" "join-room-res" "leave-room-res" "say-res" "whisper-res"
-                "room-chat-feed" "people-feed" "whisper-feed" })
+                :generic-res ;; this gets used only when responding to malformed messages.
+                :ping-res :login-res :list-rooms-res :join-room-res :leave-room-res :say-res :whisper-res
+                :room-chat-feed :people-feed :whisper-feed })
+
 
 (s/def ::payload 
   (s/or
@@ -121,5 +126,8 @@
 
 (defn valid-msg? 
   "Validates a message against the protocol spec"
-  [msg] 
-  (s/valid? ::message msg))
+  [msg]
+  (let [valid? (s/valid? ::message msg)]
+    (when (not valid?)
+      (println (str "invalid message: " (s/explain-str ::message msg))))
+    valid?))
