@@ -9,7 +9,7 @@
 
 (deftest test-add-user-channel
   (testing "Testing that adding a user channel works"
-    (let [uuid (core/make-uuid)
+    (let [uuid (server/make-uuid)
           initial-state {}
           state (server/add-user-channel initial-state uuid "nick" "channel")]
       (is (= 1 (count (:chan-by-id state))))
@@ -22,7 +22,7 @@
 
 (deftest test-remove-user-channel
   (testing "Testing that removing a user channel works"
-    (let [uuid (core/make-uuid)
+    (let [uuid (server/make-uuid)
           state1 {:rooms {"room1" #{uuid}}}
           state2 (server/add-user-channel state1 uuid "nick" "channel")
           final-state (server/remove-channel state2 uuid)]
@@ -33,7 +33,7 @@
 
 (deftest test-add-user-to-room1
   (testing "Testing that adding a user to a non-existent room works"
-    (let [uuid (core/make-uuid)
+    (let [uuid (server/make-uuid)
           init-state {}
           state (server/add-user-channel init-state uuid "nick" "channel")
           final-state (server/add-user-to-room state uuid "room1")]
@@ -41,7 +41,7 @@
 
 (deftest test-remove-user-from-room1
   (testing "Testing that adding a user to a non-existent room works"
-    (let [uuid (core/make-uuid)
+    (let [uuid (server/make-uuid)
           init-state {}
           state (server/add-user-channel init-state uuid "nick" "channel")
           final-state (server/remove-user-from-room state uuid "room1")]

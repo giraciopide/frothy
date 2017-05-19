@@ -9,7 +9,6 @@
     [dire.core :as dire]
     [clojure.string :as str]))
 
-
 ;; The server state
 (defonce state (atom {
                       :rooms {}           ;; name -> set of ids
@@ -323,3 +322,19 @@
           (hk/close chan))) ;; doesn't have an id, we close straight away.
       (catch java.lang.Exception e
         (hk/close chan))))) ;; we failed in concocting or sending a failed, just close and move on.
+
+(defn make-uuid [] (str (java.util.UUID/randomUUID)))
+
+;;
+;; What to do with every channel (i.e. websocket session that connects to us)
+;,
+(defn chat-handler [request]
+  (hk/with-channel request channel
+    (let [channel-uuid (make-uuid)]
+      (println "channel [" channel "] has been given uuid [" channel-uuid "]")
+      (hk/on-close channel (fn [status] 
+        (handle-chan-closed! channel-uuid channel status)
+        (println "channel " channel-uuid " closed: " status)))
+      (hk/on-receive channel (fn [data] 
+        (handle-channel-recv! channel-uuid channel data))))))
+
