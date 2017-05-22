@@ -55,11 +55,12 @@
 
 (defn next-msg-id! [] (str (swap! msg-id inc)))
 
+;; TODO use a version with timeout if it exists
 (defn recv-msg
   "Receive and decodes a message from a manifold stream"
   [q]
   (let [m @(m/take! q)]
-    (println (str "recv: " m))
+    ; (println (str "recv: " m))
     (server/decode-msg m)))
 
 (defn send-raw-msg
@@ -68,7 +69,9 @@
 (defn send-msg
   "Encodes a message to a string and sends it to a ws/client"
   [socket msg]
-  (ws/send-msg socket (server/encode-msg msg)))
+  (let [encoded-msg (server/encode-msg msg)]
+    (println "[client out] " encoded-msg)
+    (ws/send-msg socket encoded-msg)))
 
 (defn is-res-status
   [resp-msg status]
@@ -103,7 +106,9 @@
   (let [manifold-queue (m/stream)
         close-promise (promise)
         sock (ws/connect (str "ws://" host ":" (str port) "/chat")
-                :on-receive #(m/put! manifold-queue %1)
+                :on-receive (fn [msg] 
+                                (println "[client in] " msg)
+                                (m/put! manifold-queue msg))
                 :on-close #(deliver close-promise (str %1 "/" %2)))]
     [sock manifold-queue close-promise]))
 
@@ -162,14 +167,49 @@
       (ws/close sock)
       (stop-server))))
 
-;; TODO complete this test
+
 (deftest test-join-and-leave-room
-  (testing "Testing that login in works works"
+  (testing "Testing that joining a room and leaving it works, and that proper feeds are sent"
     (let [stop-server (make-server test-host test-port)
           [sock1 q1 close-promise] (make-client test-host test-port) 
           [sock2 q2 close-promise] (make-client test-host test-port)]
+      
+      ;; mr Bach logins and joins "composers_lounge"
       (is-login-ok sock1 q1 "JSBach")
+      (send-msg sock1 { :id (next-msg-id!) 
+                 :type :join-room-req
+                 :payload { :room "composers_lounge" }})
+      (is-res-ok (recv-msg q1) "join-room-res")
+      (recv-msg q1) ; people feed (Bach entered composers_loung)
+
+      ;; vivaldi logins and joins "composers_lounge"
       (is-login-ok sock2 q2 "AVivaldi")
+      (send-msg sock2 { :id (next-msg-id!) 
+                 :type :join-room-req
+                 :payload { :room "composers_lounge" }})
+      (is-res-ok (recv-msg q2) "join-room-res")
+      (recv-msg q2) ; vivaldi gets people feed (vivaldi entered composers_lounge)
+
+      (recv-msg q1) ; bach gets notified of vivaldi entering.
+
+      ;; vivaldi chats
+      (send-msg sock2 { :id (next-msg-id!) 
+                        :type :say-req 
+                        :payload { :room "composers_lounge" 
+                                   :msg "Howdy!"}})
+      (is-res-ok (recv-msg q2) "say-res")
+      (recv-msg q1) ; bach gets notified of vivaldi chat.
+      (recv-msg q2) ; vivaldi gets notified of his chat.
+
+      ;; vivaldi leaves the room
+      (send-msg sock2 { :id (next-msg-id!) 
+                 :type :leave-room-req
+                 :payload { :room "composers_lounge" }})
+      (is-res-ok (recv-msg q2) "leave-room-res")
+
+      (recv-msg q1) ; bach gets notified of vivaldi leaving.
+
+      ;; Let's wrap up and go home.
       (ws/close sock1)
       (ws/close sock2)
       (stop-server))))
